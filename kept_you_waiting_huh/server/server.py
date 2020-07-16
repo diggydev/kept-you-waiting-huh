@@ -24,3 +24,27 @@ def index():
         ]
         return {'screen': screen, 'secretId': 'xxx'}
     return render_template('index.html')
+
+app.run()
+
+# https://github.com/alecthomas/flask_injector
+# from flask_injector import FlaskInjector
+# from injector import Module
+#
+# class MyModule(Module):
+#     @provider
+#     @singleton
+#     def provide_ext(self, app: Flask) -> ExtClass:
+#         return ExtClass(app)
+#
+# def main():
+#     app = Flask(__name__)
+#     app.config.update(
+#         EXT_CONFIG_VAR='some_value',
+#     )
+#
+#     # attach your views etc. here
+#
+#     FlaskInjector(app=app, modules=[MyModule])
+#
+#     app.run()
