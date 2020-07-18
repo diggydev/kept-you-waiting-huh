@@ -19,7 +19,7 @@ def index():
 def run(_engine: Engine):
     global engine
     engine = _engine
-    app.static_folder='/Users/.../dev/kept-you-waiting-huh/kept_you_waiting_huh/demo'
+    app.static_folder=_engine.get_graphics_dir()
     #works for map.gif but then ui.js isn't found.. can move js to index.html
     print(app.static_folder)
     print(app.config)

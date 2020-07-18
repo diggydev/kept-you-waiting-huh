@@ -2,12 +2,99 @@
 <html>
    <head>
      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-     <script type = "text/javascript" src = "{{ url_for('static', filename = 'ui.js') }}" ></script>
+     <script>
+     var secretId = ""
+     var keyboard = "################\n"
+
+     function buttonClick(command) {
+       console.log(command);
+     }
+
+     function createButton(cx, cy, r, svg, command) {
+        var button = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        button.setAttribute("cx", cx);
+        button.setAttribute("cy", cy);
+        button.setAttribute("r", r);
+        button.setAttribute("stroke", "black");
+        button.setAttribute("stroke-width", "1");
+        button.setAttribute("fill", "red");
+        button.setAttribute("onclick", "buttonClick('"+command+"')");
+        svg.appendChild(button);
+     }
+
+     function drawKeyboard(heading) {
+       var c=document.getElementById("screen");
+       var ctx=c.getContext("2d");
+       var scale = Math.floor(8*c.width/128);
+       console.log(scale);
+      ctx.font = scale + "px Arial";
+       for(y = 0; y < 12; y++) {
+         for(x = 0; x < 16; x++) {
+           ctx.fillText("x", x*scale, y*scale);
+         }
+       }
+     }
+
+     function sendCommand(command) {
+       $.post("/",{"command": command, "secretId": secretId},
+       function (data, status){
+         // var c=document.getElementById("screen");
+         // var ctx=c.getContext("2d");
+         console.log(data);
+         if("text" == data["type"]) {
+           drawKeyboard(data["heading"])
+         }
+         // secretId = data["secretId"];
+         // screenData = data["screen"];
+         // var c=document.getElementById("screen");
+         // var ctx=c.getContext("2d");
+         // var map = document.getElementById("map");
+         // for (y = 0; y < screenData.length; y++) {
+         //   for (x = 0; x < screenData[y].length; x++) {
+         //     ctx.drawImage(map, screenData[y][x][0]*8, screenData[y][x][1]*8, 8, 8, x*8, y*8, 8, 8);
+         //   }
+         // }
+         //console.log(data);
+         //$('#map').hide();
+       }
+     );
+     }
+
+     $(document).ready(function(){
+       console.log(window.innerWidth);
+       console.log(window.innerHeight);
+
+      var svg = document.getElementById('leftControls');
+      createButton(100, 50, 20, svg, 'U');
+      createButton(100, 100, 20, svg, 'D');
+      createButton(50, 75, 20, svg, 'L');
+      createButton(150, 75, 20, svg, 'R');
+
+      var svg = document.getElementById('rightControls');
+      createButton(100, 50, 10, svg, 'S');
+      createButton(100, 100, 20, svg, 'B');
+      createButton(150, 75, 20, svg, 'A');
+
+      sendCommand('power');
+     });
+     </script>
+     <style>
+     #leftControls {
+        float: left;
+      }
+      #rightControls {
+         float: right;
+       }
+      canvas {
+        border:1px solid #000000;
+      }
+     </style>
      <meta name="viewport" content="width=device-width, initial-scale=1.0">
    </head>
    <body>
-     <canvas id="screen" width="400" height="300" style="border:1px solid #000000;"></canvas>
-     <svg width="400" height="200" id="input">
+     <svg id="leftControls"></svg>
+     <canvas id="screen" width="400" height="300"></canvas>
+     <svg id="rightControls"></svg>
      <img id="map" src="{{ url_for('static', filename = 'map.gif') }}"/>
    </body>
 </html>
