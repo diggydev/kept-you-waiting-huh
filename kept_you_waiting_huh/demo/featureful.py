@@ -22,4 +22,5 @@ class Featureful(Engine):
     #     ]
     #     return {'screen': screen, 'secretId': 'xxx'}
 
-server.run(Featureful())
+server.set_engine(Featureful())
+app = server.app
