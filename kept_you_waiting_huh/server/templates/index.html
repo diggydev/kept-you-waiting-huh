@@ -3,11 +3,22 @@
    <head>
      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
      <script>
-     var secretId = ""
-     var keyboard = "################\n"
+     var secretId = "";
+     var heading = "";
+     var textEntry = "br";
+     var type = "";
 
      function buttonClick(command) {
-       console.log(command);
+       if(type == "text") {
+         if(command == "S") {
+           command = "textEntry";
+         } else {
+           keyboardCommand(command);
+           drawKeyboard();
+           return;
+         }
+       }
+       sendCommand(command);
      }
 
      function createButton(cx, cy, r, svg, command) {
@@ -22,43 +33,122 @@
         svg.appendChild(button);
      }
 
-     function drawKeyboard(heading) {
+/*
+xxxxxxxxxxxxxxxx
+xaxbxcxdxexfxgxh
+xxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx
+*/
+
+     var keyboard = [
+       ["a","b","c","d","e","f"],
+       ["g","h","i","j","k","l"],
+       ["m","n","o","p","q","r"],
+       ["s","t","u","v","w","x"],
+       ["y","z"],
+     ]
+
+     var cursor = "a";
+     var cursorX = 0;
+     var cursorY = 0;
+
+     function keyboardCommand(command) {
+       if(command == "A") {
+         if(textEntry.length == 8) {
+           textEntry[7] = cursor;
+         } else {
+           textEntry += cursor;
+         }
+       } else if (command == "B" && textEntry.length > 0) {
+         textEntry = textEntry.substring(0,textEntry.length - 1);
+       } else if (command == "U") {
+         cursorY -= 1;
+         if (cursorY < 0) {
+           cursorY = keyboard.length - 1;
+         }
+       } else if (command == "D") {
+         cursorY += 1;
+         if (cursorY == keyboard.length) {
+           cursorY = 0;
+         }
+       } else if (command == "L") {
+         cursorX -= 1;
+         if (cursorX < 0) {
+           cursorX = keyboard[cursorY].length - 1;
+         }
+       } else if (command == "R") {
+         cursorX += 1;
+         if (cursorX == keyboard.length + 1) {
+           cursorX = 0;
+         }
+       }
+       cursor = keyboard[cursorY][cursorX];
+     }
+
+     function drawKeyboard() {
        var c=document.getElementById("screen");
        var ctx=c.getContext("2d");
        var scale = Math.floor(8*c.width/128);
-       console.log(scale);
+       ctx.clearRect(0, 0, c.width, c.height);
       ctx.font = scale + "px Arial";
-       for(y = 0; y < 12; y++) {
+       for(y = 1; y < 13; y++) {
          for(x = 0; x < 16; x++) {
-           ctx.fillText("x", x*scale, y*scale);
+           if(y == 1 && x < heading.length) {
+             char = heading[x];
+           } else if(y == 2 && x < 8) {
+             if(x < textEntry.length) {
+               char = textEntry[x];
+             } else {
+               char = "_";
+             }
+           } else if(y > 2 && (y-3) < keyboard.length && x < keyboard[y-3].length) {
+             char = keyboard[y-3][x];
+             if (char==cursor) {
+               //char = char.toUpperCase();
+               ctx.beginPath();
+               ctx.moveTo(x*scale,y*scale);
+              ctx.lineTo((x+1)*scale,y*scale);
+              ctx.stroke();
+             }
+           } else {
+             char = ".";
+           }
+           ctx.fillText(char, x*scale, y*scale);
          }
        }
      }
 
      function sendCommand(command) {
-       $.post("/",{"command": command, "secretId": secretId},
-       function (data, status){
-         // var c=document.getElementById("screen");
-         // var ctx=c.getContext("2d");
-         console.log(data);
-         if("text" == data["type"]) {
-           drawKeyboard(data["heading"])
+         $.post("/",{"command": command, "secretId": secretId},
+         function (data, status){
+           type = data["type"];
+           if("text" == type) {
+             heading = data["heading"];
+             drawKeyboard();
+           }
          }
-         // secretId = data["secretId"];
-         // screenData = data["screen"];
-         // var c=document.getElementById("screen");
-         // var ctx=c.getContext("2d");
-         // var map = document.getElementById("map");
-         // for (y = 0; y < screenData.length; y++) {
-         //   for (x = 0; x < screenData[y].length; x++) {
-         //     ctx.drawImage(map, screenData[y][x][0]*8, screenData[y][x][1]*8, 8, 8, x*8, y*8, 8, 8);
-         //   }
-         // }
-         //console.log(data);
-         //$('#map').hide();
-       }
-     );
+       );
      }
+
+     // secretId = data["secretId"];
+     // screenData = data["screen"];
+     // var c=document.getElementById("screen");
+     // var ctx=c.getContext("2d");
+     // var map = document.getElementById("map");
+     // for (y = 0; y < screenData.length; y++) {
+     //   for (x = 0; x < screenData[y].length; x++) {
+     //     ctx.drawImage(map, screenData[y][x][0]*8, screenData[y][x][1]*8, 8, 8, x*8, y*8, 8, 8);
+     //   }
+     // }
+     //console.log(data);
+     //$('#map').hide();
 
      $(document).ready(function(){
        console.log(window.innerWidth);
